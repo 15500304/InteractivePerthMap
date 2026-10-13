@@ -25,25 +25,21 @@ const regions=[
 ];
 const map=L.map('map',{zoomControl:false,scrollWheelZoom:true}).setView([-31.985,115.91],10);
 L.control.zoom({position:'bottomright'}).addTo(map);
-const tiles=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',maxZoom:19}).addTo(map);
-// Keep suburb and street labels above the coloured regions.
-map.createPane('mapLabels');
-map.getPane('mapLabels').style.zIndex='450';
-map.getPane('mapLabels').style.pointerEvents='none';
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',{
- pane:'mapLabels',maxZoom:19
+const tiles=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+ attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+ maxZoom:19
 }).addTo(map);
 let tileWarning;
 tiles.on('tileerror',()=>{if(!tileWarning){tileWarning=L.control({position:'topright'});tileWarning.onAdd=()=>{const el=L.DomUtil.create('div','tile-warning');el.textContent='Street tiles unavailable. Region overlays remain interactive.';return el;};tileWarning.addTo(map);}});
 let selected=null;
 const layers=[];const buttons=[];
-function paint(active){layers.forEach((layer,i)=>{layer.setStyle({fillOpacity:active===null?.25:active===i?.40:.12,weight:active===i?3:1.5,color:active===i?'#24483f':regions[i].color});buttons[i].classList.toggle('active',active===i);buttons[i].setAttribute('aria-pressed',String(selected===i));});if(active!==null)layers[active].bringToFront();}
+function paint(active){layers.forEach((layer,i)=>{layer.setStyle({fillOpacity:active===null?.18:active===i?.32:.08,weight:active===i?3:1.5,color:active===i?'#24483f':regions[i].color});buttons[i].classList.toggle('active',active===i);buttons[i].setAttribute('aria-pressed',String(selected===i));});if(active!==null)layers[active].bringToFront();}
 function detail(i){document.querySelector('#detail-label').textContent=i===null?'HOW TO EXPLORE':'REGION BOUNDARY';document.querySelector('#detail-title').textContent=i===null?'Start with a region':regions[i].name;document.querySelector('#detail-description').textContent=i===null?'Hover over the map or a region below. Click or tap to keep it selected.':regions[i].description;document.querySelector('#clear').hidden=selected===null;}
 function highlight(i){paint(i);detail(i);}
 function select(i){selected=selected===i?null:i;highlight(selected);}
 regions.forEach((region,i)=>{
  const button=document.createElement('button');button.className='region';button.innerHTML=`<span class="swatch" style="--color:${region.color}"></span><span>${region.name.replace('Perth ','')}</span><span class="arrow">↗</span>`;button.setAttribute('aria-label',region.name);button.setAttribute('aria-pressed','false');document.querySelector('#regions').append(button);buttons.push(button);
- const layer=L.polygon(region.points,{color:region.color,fillColor:region.color,fillOpacity:.25,weight:1.5}).addTo(map).bindTooltip(region.name,{sticky:true,className:'region-tooltip'});layers.push(layer);
+ const layer=L.polygon(region.points,{color:region.color,fillColor:region.color,fillOpacity:.18,weight:1.5}).addTo(map).bindTooltip(region.name,{sticky:true,className:'region-tooltip'});layers.push(layer);
  layer.on('mouseover',()=>highlight(i)).on('mouseout',()=>highlight(selected)).on('click',()=>select(i));
  button.addEventListener('mouseenter',()=>highlight(i));button.addEventListener('mouseleave',()=>highlight(selected));button.addEventListener('focus',()=>highlight(i));button.addEventListener('blur',()=>highlight(selected));button.addEventListener('click',()=>select(i));
 });
