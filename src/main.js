@@ -25,12 +25,19 @@ const regions=[
 ];
 const map=L.map('map',{zoomControl:false,scrollWheelZoom:true}).setView([-31.985,115.91],10);
 L.control.zoom({position:'bottomright'}).addTo(map);
-const tiles=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',maxZoom:19}).addTo(map);
+const tiles=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',maxZoom:19}).addTo(map);
+// Keep suburb and street labels above the coloured regions.
+map.createPane('mapLabels');
+map.getPane('mapLabels').style.zIndex='450';
+map.getPane('mapLabels').style.pointerEvents='none';
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',{
+ pane:'mapLabels',maxZoom:19
+}).addTo(map);
 let tileWarning;
 tiles.on('tileerror',()=>{if(!tileWarning){tileWarning=L.control({position:'topright'});tileWarning.onAdd=()=>{const el=L.DomUtil.create('div','tile-warning');el.textContent='Street tiles unavailable. Region overlays remain interactive.';return el;};tileWarning.addTo(map);}});
 let selected=null;
 const layers=[];const buttons=[];
-function paint(active){layers.forEach((layer,i)=>{layer.setStyle({fillOpacity:active===null?.25:active===i?.55:.12,weight:active===i?3:1.5,color:active===i?'#24483f':regions[i].color});buttons[i].classList.toggle('active',active===i);buttons[i].setAttribute('aria-pressed',String(selected===i));});if(active!==null)layers[active].bringToFront();}
+function paint(active){layers.forEach((layer,i)=>{layer.setStyle({fillOpacity:active===null?.25:active===i?.40:.12,weight:active===i?3:1.5,color:active===i?'#24483f':regions[i].color});buttons[i].classList.toggle('active',active===i);buttons[i].setAttribute('aria-pressed',String(selected===i));});if(active!==null)layers[active].bringToFront();}
 function detail(i){document.querySelector('#detail-label').textContent=i===null?'HOW TO EXPLORE':'REGION BOUNDARY';document.querySelector('#detail-title').textContent=i===null?'Start with a region':regions[i].name;document.querySelector('#detail-description').textContent=i===null?'Hover over the map or a region below. Click or tap to keep it selected.':regions[i].description;document.querySelector('#clear').hidden=selected===null;}
 function highlight(i){paint(i);detail(i);}
 function select(i){selected=selected===i?null:i;highlight(selected);}
